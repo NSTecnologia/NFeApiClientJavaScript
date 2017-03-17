@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NFe API</title>
+	<style type="text/css">
+        html, body{
+            margin:0; padding:0; border:0;
+        }
+        table{
+            position: absolute; min-height:100%; min-width: 100%; max-height:100%; max-width: 100%;
+        }
+        th, td{
+            text-align: center;
+        }
+        label{
+            color: #66637A;
+        }
+        input{
+            margin-bottom: 1%;
+        }
+        input[type='submit'], input[type='button']{
+            color: #fff; background-color: #337ab7;
+            font-weight: 400; text-align: center; cursor: pointer; border: 1px solid #2e6da4;
+            padding: 6px 12px; font-size: 14px; border-radius: 4px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            user-select: none;
+        }
+        div {
+            display: block;
+        }
+        .container {
+            position: absolute;
+            overflow: auto;
+            width: 100%;
+            height: 100%;
+            min-height: 250px;
+            min-width: 550px;
+            padding: 20px;
+            box-sizing:border-box;
+        }
+        .cmdContainer, .resultContainer{
+            float: left;
+            height: 100%;
+            width: 50%;
+            padding: 5px;
+            box-sizing:border-box;
+            overflow:auto;
+        }
+        .cmdBox{
+            border-bottom: 1px solid #2e6da4;
+        }
+        .cmdBoxButton{
+            width: 95%;
+            text-align: right;
+        }
+        h2, .descriptionContainer{
+            color: #66637A;
+        }
+        .descriptionContainer{
+            font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+        textarea{
+            resize: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="cmdContainer">
+
+
+        <div class="cmdBox">
+            <h2>Enviar NFe</h2>
+            <div class="descriptionContainer">
+                Utilizando o token, envia uma NFe de exemplo.<br>
+            </div><br>	
+            <label for="txtToken">Token:</label>
+            <input type="text" id="txtToken" placeholder="Insira o token" value="">
+            <br>
+            <label for="chkJson">Envio em formato JSON?</label>
+            <input type="checkbox" id="chkJson"> <br>
+            
+            <textarea id="txtNFe" style="width: 100%; height: 200px; box-sizing:border-box;"></textarea>
+            <br>
+            <div class="cmdBoxButton">
+                <input type="button" id="btnEnviaNFe" value="Enviar">
+            </div>        
+        </div>
+		
+		
+		<div class="cmdBox">
+			<h2>Consulta Status de Processamento</h2>
+			<div class="descriptionContainer">
+				Consulta o status de um nota, junta a SEFAZ.<br>
+			</div><br>
+			<label for="tokenConsulta">Token:</label>
+			<input type="text" id="tokenConsulta"> <br>
+			<label for="CNPJConsulta">CNPJ:</label>
+			<input type="text" id="CNPJConsulta"> <br>
+			<label for="nsNRecConsulta">Numero de Recebimento: </label>
+			<input type="text" id="nsNRecConsulta"> <br>
+						
+			<div class="cmdBoxButton">
+				<input type="button" id="btnConsultaNFe" value="Consultar">
+			</div>
+		</div>
+		
+		
+		<div class="cmdBox">
+            <h2>Download NFe</h2>
+            <div class="descriptionContainer">
+                Realiza download de uma nota.<br>
+            </div><br>
+            <label for="tokenDownload">Token: </label>
+            <input type="text" id="tokenDownload"> <br>
+            <label for="chNFeDownload">Chave do NFe: </label>
+            <input type="text" id="chNFeDownload" style="min-width: 400px"> <br>
+            <label for="tpDown">Tipo de Download*: </label>
+            <input type="text" id="tpDown"> <br>
+            <label> * X - XML; J - JSON</label>
+            
+			<div class="cmdBoxButton">
+				<input type="button" id="btnBaixar" value="Enviar">
+            </div>
+            </form>
+        </div>
+	</div>
+	
+	<div class="resultContainer">
+
+        <!--    Mostra retorno da API   -->
+        Retorno da API:
+        <textarea name="resultText" id="resultText" style="width: 100%; height: 30%; box-sizing:border-box;"></textarea>
+   
+    </div >
+</div>
+
+
+<script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+	$(document).ready(function(){
+	
+		$("#btnEnviaNFe").click(function(){
+			//Pega os valores dos respectivos campos
+            var nfe = $("#txtNFe").val();
+            var token = $("#txtToken").val();
+            var isJson = $("#chkJson").is(":checked");
+
+			//Valida os campos
+            if (token == undefined || token == ''){
+                $("#resultText").val('O Token de acesso deve ser informado');
+                return;
+            }
+            if (nfe == undefined || nfe == ''){
+                $("#resultText").val('O conteúdo da NFe deve ser informado');
+                return;
+            }
+
+			
+            enviaNFe(token, nfe, isJson);
+		});
+		
+		
+		$("#btnConsultaNFe").click(function(){
+			//Pega os valores dos respectivos campos
+			var token = $("#tokenConsulta").val();
+			var CNPJ = $("#CNPJConsulta").val();
+			var nsNRec = $("#nsNRecConsulta").val();
+			
+			//Valida os campos
+			if (token == undefined || token == ''){
+                $("#resultText").val('O Token de acesso deve ser informado');
+                return;
+            }
+            if (CNPJ == undefined || CNPJ == ''){
+                $("#resultText").val('O CNPJ deve ser informado');
+                return;
+            }
+			if (nsNRec == undefined || nsNRec == ''){
+                $("#resultText").val('O Número de Recebimento deve ser informado');
+                return;
+            }
+			
+			
+			consultaStatusProcessamento(token, CNPJ, nsNRec);
+		});
+		
+		$("#btnBaixar").click(function(){
+			//Pega os valores dos respectivos campos
+			var token = $("#tokenDownload").val();
+			var chNFe = $("#chNFeDownload").val();
+			var tpDown = $("#tpDown").val();
+			
+			//Valida os campos
+			if (token == undefined || token == ''){
+                $("#resultText").val('O Token de acesso deve ser informado');
+                return;
+            }
+            if (chNFe == undefined || chNFe == ''){
+                $("#resultText").val('A Chave da NF-e deve ser informada');
+                return;
+            }
+			if (tpDown == undefined || tpDown == ''){
+                $("#resultText").val('O Tipo de Download deve ser informado');
+                return;
+            }
+			
+			
+			downloadNFe(token, chNFe, tpDown);
+		});
+		
+		function enviaNFe(token, nfe, isJson){
+			//Envio por POST para a respectiva url
+            $.ajax({
+                type: 'POST',
+                url: 'https://nfe.ns.eti.br/nfe/issue',
+                data: nfe,
+                contentType: (isJson) ? "application/json" : "text/plain",
+                headers: {
+                    "X-AUTH-TOKEN": token
+                }
+
+            }).then(function(response){
+                //Entrará aqui se o a requisição for realizada corretamente
+                indentAndShowResponse(response);
+
+            }, function(response){
+                //Entrará aqui se algum erro ocorrer durante a requisição
+                indentAndShowResponse(response);
+            });
+		}
+
+		function consultaStatusProcessamento(token, CNPJ, nsNRec){
+			//Monta o JSON
+			var json = {"X-AUTH-TOKEN": token , "CNPJ": CNPJ, "nsNRec": nsNRec};
+			
+			
+			//Envio por POST para a respectiva URL
+			$.ajax({
+						type: 'POST',
+						url: 'https://nfe.ns.eti.br/nfe/issue/status',
+						data: JSON.stringify(json),
+						contentType: "application/json",
+						headers: {
+							"X-AUTH-TOKEN": token
+						}
+
+					}).then(function(response){
+						//Entrará aqui se o a requisição for realizada corretamente
+						indentAndShowResponse(response);
+
+					}, function(response){
+						//Entrará aqui se algum erro ocorrer durante a requisição
+						indentAndShowResponse(response);
+					});
+			
+		}
+		
+		function downloadNFe(token, chNFe, tpDown){
+			//Monta o JSON
+			var json = {"X-AUTH-TOKEN": token, "chNFe": chNFe, "tpDown": tpDown};
+			
+			//Envio por POST para a respectiva URL
+			$.ajax({
+						type: 'POST',
+						url: 'https://nfe.ns.eti.br/nfe/get',
+						data: JSON.stringify(json),
+						contentType: "application/json",
+						headers: {
+							"X-AUTH-TOKEN": token
+						}
+
+					}).then(function(response){
+						//Entrará aqui se o a requisição for realizada corretamente
+						indentAndShowResponse(response);
+
+					}, function(response){
+						//Entrará aqui se algum erro ocorrer durante a requisição
+						indentAndShowResponse(response);
+					});
+		}
+		
+		
+        function indentAndShowResponse(response){
+            $("#resultText").val(JSON.stringify(response, null, '\t'));
+        }
+	
+	});
+
+</script>
+</body>
+</html>
