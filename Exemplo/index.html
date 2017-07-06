@@ -80,8 +80,13 @@
             <label for="txtToken">Token:</label>
             <input type="text" id="txtToken" placeholder="Insira o token" value="">
             <br>
-            <label for="chkJson">Envio em formato JSON?</label>
-            <input type="checkbox" id="chkJson"> <br>
+
+            <label>Tipo de Conteúdo: </label>
+            <select id="tpConteudo">
+                <option value="json">1 - JSON</option>
+                <option value="txt">2 - TXT</option>
+                <option value="xml">3 - XML</option>
+            </select>
             
             <textarea id="txtNFe" style="width: 100%; height: 200px; box-sizing:border-box;"></textarea>
             <br>
@@ -140,7 +145,9 @@
 
 
 <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="NFeAPI.js"></script>
 <script type="text/javascript">
+
 
 	$(document).ready(function(){
 	
@@ -148,7 +155,7 @@
 			//Pega os valores dos respectivos campos
             var nfe = $("#txtNFe").val();
             var token = $("#txtToken").val();
-            var isJson = $("#chkJson").is(":checked");
+            var tpConteudo = $("#tpConteudo").val();
 
 			//Valida os campos
             if (token == undefined || token == ''){
@@ -160,10 +167,9 @@
                 return;
             }
 
-			
-            enviaNFe(token, nfe, isJson);
+            var retorno = enviaNFe(token, nfe, tpConteudo);
+			indentAndShowResponse(retorno);
 		});
-		
 		
 		$("#btnConsultaNFe").click(function(){
 			//Pega os valores dos respectivos campos
@@ -185,8 +191,8 @@
                 return;
             }
 			
-			
-			consultaStatusProcessamento(token, CNPJ, nsNRec);
+			var retorno = consultaStatusProcessamento(token, CNPJ, nsNRec);
+			indentAndShowResponse(retorno);
 		});
 		
 		$("#btnBaixar").click(function(){
@@ -209,83 +215,11 @@
                 return;
             }
 			
-			
-			downloadNFe(token, chNFe, tpDown);
+			var retorno = downloadNFe(token, chNFe, tpDown);
+			indentAndShowResponse(retorno);
 		});
 		
-		function enviaNFe(token, nfe, isJson){
-			//Envio por POST para a respectiva url
-            $.ajax({
-                type: 'POST',
-                url: 'https://nfe.ns.eti.br/nfe/issue',
-                data: nfe,
-                contentType: (isJson) ? "application/json" : "text/plain",
-                headers: {
-                    "X-AUTH-TOKEN": token
-                }
-
-            }).then(function(response){
-                //Entrará aqui se o a requisição for realizada corretamente
-                indentAndShowResponse(response);
-
-            }, function(response){
-                //Entrará aqui se algum erro ocorrer durante a requisição
-                indentAndShowResponse(response);
-            });
-		}
-
-		function consultaStatusProcessamento(token, CNPJ, nsNRec){
-			//Monta o JSON
-			var json = {"X-AUTH-TOKEN": token , "CNPJ": CNPJ, "nsNRec": nsNRec};
-			
-			
-			//Envio por POST para a respectiva URL
-			$.ajax({
-						type: 'POST',
-						url: 'https://nfe.ns.eti.br/nfe/issue/status',
-						data: JSON.stringify(json),
-						contentType: "application/json",
-						headers: {
-							"X-AUTH-TOKEN": token
-						}
-
-					}).then(function(response){
-						//Entrará aqui se o a requisição for realizada corretamente
-						indentAndShowResponse(response);
-
-					}, function(response){
-						//Entrará aqui se algum erro ocorrer durante a requisição
-						indentAndShowResponse(response);
-					});
-			
-		}
-		
-		function downloadNFe(token, chNFe, tpDown){
-			//Monta o JSON
-			var json = {"X-AUTH-TOKEN": token, "chNFe": chNFe, "tpDown": tpDown};
-			
-			//Envio por POST para a respectiva URL
-			$.ajax({
-						type: 'POST',
-						url: 'https://nfe.ns.eti.br/nfe/get',
-						data: JSON.stringify(json),
-						contentType: "application/json",
-						headers: {
-							"X-AUTH-TOKEN": token
-						}
-
-					}).then(function(response){
-						//Entrará aqui se o a requisição for realizada corretamente
-						indentAndShowResponse(response);
-
-					}, function(response){
-						//Entrará aqui se algum erro ocorrer durante a requisição
-						indentAndShowResponse(response);
-					});
-		}
-		
-		
-        function indentAndShowResponse(response){
+		function indentAndShowResponse(response){
             $("#resultText").val(JSON.stringify(response, null, '\t'));
         }
 	
